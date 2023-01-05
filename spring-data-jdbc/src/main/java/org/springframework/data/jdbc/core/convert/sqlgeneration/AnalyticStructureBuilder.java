@@ -197,7 +197,7 @@ class AnalyticStructureBuilder<T, C> {
 
 	abstract class SingleTableSelect extends Select {
 
-		abstract ForeignKey getForeignKey();
+		abstract List<ForeignKey> getForeignKey();
 	}
 
 	class TableDefinition extends SingleTableSelect {
@@ -251,9 +251,9 @@ class AnalyticStructureBuilder<T, C> {
 		}
 
 		@Override
-		ForeignKey getForeignKey() {
-			return foreignKey.isEmpty() ? null : foreignKey.iterator().next();
-		} // TODO this is a hack. Should return the full collection.
+		List<ForeignKey> getForeignKey() {
+			return foreignKey;
+		}
 
 		@Override
 		public List<? extends AnalyticColumn> getColumns() {
@@ -510,7 +510,7 @@ class AnalyticStructureBuilder<T, C> {
 		}
 
 		@Override
-		ForeignKey getForeignKey() {
+		List<ForeignKey> getForeignKey() {
 			return table.getForeignKey();
 		}
 	}
