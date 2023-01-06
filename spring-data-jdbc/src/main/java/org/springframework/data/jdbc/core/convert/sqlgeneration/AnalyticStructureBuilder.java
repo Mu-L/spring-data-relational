@@ -204,7 +204,7 @@ class AnalyticStructureBuilder<T, C> {
 
 		private final T table;
 		private AnalyticColumn id;
-		private List<? extends AnalyticColumn> columns;
+		private List<AnalyticColumn> columns;
 		private List<ForeignKey> foreignKey = new ArrayList<>();
 		private BaseColumn keyColumn;
 
@@ -234,7 +234,8 @@ class AnalyticStructureBuilder<T, C> {
 
 		TableDefinition withColumns(C... columns) {
 
-			this.columns = Arrays.stream(columns).map(BaseColumn::new).toList();
+			this.columns = new ArrayList<>(this.columns);
+			Arrays.stream(columns).map(BaseColumn::new).forEach(bc -> this.columns.add(bc));
 			return this;
 		}
 

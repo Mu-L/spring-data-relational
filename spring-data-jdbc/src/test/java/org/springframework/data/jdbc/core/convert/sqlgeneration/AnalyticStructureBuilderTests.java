@@ -51,6 +51,18 @@ public class AnalyticStructureBuilderTests {
 	}
 
 	@Test
+	void simpleTableWithColumnsAddedInMultipleSteps() {
+
+		AnalyticStructureBuilder<String, String> builder = new AnalyticStructureBuilder<String, String>().addTable("person",
+				td -> td.withId("person_id").withColumns("value").withColumns( "lastname"));
+
+		assertThat(builder).hasExactColumns("person_id", "value", "lastname") //
+				.hasId("person_id") //
+				.hasStructure(td("person"));
+
+	}
+
+	@Test
 	void tableWithSingleChild() {
 
 		AnalyticStructureBuilder<String, String> builder = new AnalyticStructureBuilder<String, String>()

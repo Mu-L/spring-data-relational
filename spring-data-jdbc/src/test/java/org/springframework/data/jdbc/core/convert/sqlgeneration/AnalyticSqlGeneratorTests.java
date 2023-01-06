@@ -38,7 +38,7 @@ class AnalyticSqlGeneratorTests {
 
 		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(DummyEntity.class));
 
-		assertThat(sql).isEqualTo("SELECT dummy_entity.a_column FROM dummy_entity");
+		assertThat(sql).isEqualTo("SELECT dummy_entity.id, dummy_entity.a_column FROM dummy_entity");
 
 	}
 
