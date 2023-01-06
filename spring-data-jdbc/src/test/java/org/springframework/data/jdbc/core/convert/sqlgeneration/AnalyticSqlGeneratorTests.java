@@ -17,6 +17,7 @@
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.jdbc.core.convert.sqlgeneration.SqlAssert.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.annotation.Id;
@@ -35,8 +36,9 @@ class AnalyticSqlGeneratorTests {
 
 		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(DummyEntity.class));
 
-		assertThat(sql).isEqualTo("SELECT dummy_entity.id, dummy_entity.a_column FROM dummy_entity");
-
+		assertThatParsed(sql) //
+				.hasColumns("dummy_entity.id", "dummy_entity.a_column") //
+				.selectsFrom("dummy_entity")  ;
 	}
 
 	private RelationalPersistentEntity<?> getRequiredPersistentEntity(Class<DummyEntity> entityClass) {
