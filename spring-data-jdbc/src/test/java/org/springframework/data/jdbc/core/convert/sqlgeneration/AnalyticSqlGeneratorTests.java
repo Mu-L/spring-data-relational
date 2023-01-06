@@ -19,21 +19,26 @@ package org.springframework.data.jdbc.core.convert.sqlgeneration;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.jdbc.core.mapping.JdbcMappingContext;
+import org.springframework.data.relational.core.dialect.AbstractDialect;
+import org.springframework.data.relational.core.dialect.AnsiDialect;
+import org.springframework.data.relational.core.dialect.LimitClause;
+import org.springframework.data.relational.core.dialect.LockClause;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
+import org.springframework.data.relational.core.sql.IdentifierProcessing;
 
 import static org.assertj.core.api.Assertions.*;
 
 class AnalyticSqlGeneratorTests {
 
 	JdbcMappingContext context = new JdbcMappingContext();
-	AnalyticSqlGenerator sqlGenerator = new AnalyticSqlGenerator(context);
+	AnalyticSqlGenerator sqlGenerator = new AnalyticSqlGenerator(TestDialect.INSTANCE);
 
 	@Test
 	void simpleEntity() {
 
 		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(DummyEntity.class));
 
-		assertThat(sql).isEqualTo("select id, a_column from dummy_entity");
+		assertThat(sql).isEqualTo("SELECT dummy_entity.a_column FROM dummy_entity");
 
 	}
 
@@ -45,5 +50,14 @@ class AnalyticSqlGeneratorTests {
 		@Id Long id;
 
 		String aColumn;
+	}
+
+	static class TestDialect extends AnsiDialect{
+
+		static TestDialect INSTANCE = new TestDialect();
+		@Override
+		public IdentifierProcessing getIdentifierProcessing() {
+			return IdentifierProcessing.NONE;
+		}
 	}
 }

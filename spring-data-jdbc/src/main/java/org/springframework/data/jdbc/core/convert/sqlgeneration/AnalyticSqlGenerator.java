@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.data.jdbc.core.mapping.JdbcMappingContext;
 import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.relational.core.dialect.AnsiDialect;
 import org.springframework.data.relational.core.dialect.RenderContextFactory;
@@ -28,6 +27,7 @@ import org.springframework.data.relational.core.mapping.RelationalPersistentEnti
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.Expression;
 import org.springframework.data.relational.core.sql.Select;
+import org.springframework.data.relational.core.sql.SelectBuilder;
 import org.springframework.data.relational.core.sql.SqlIdentifier;
 import org.springframework.data.relational.core.sql.StatementBuilder;
 import org.springframework.data.relational.core.sql.Table;
@@ -36,11 +36,12 @@ import org.springframework.data.relational.core.sql.render.SqlRenderer;
 
 public class AnalyticSqlGenerator {
 
-	private final JdbcMappingContext context;
+	private final AnsiDialect dialect;
 
-	public AnalyticSqlGenerator(JdbcMappingContext context) {
-		this.context = context;
+	public AnalyticSqlGenerator(AnsiDialect dialect) {
+		this.dialect = dialect;
 	}
+
 
 	public String findAll(RelationalPersistentEntity<?> aggregateRoot) {
 		return render(createSelectStructure(aggregateRoot));
@@ -67,6 +68,21 @@ public class AnalyticSqlGenerator {
 	private String render(
 			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select queryStructure) {
 
+		SelectBuilder.SelectFromAndJoin from = createSelect(queryStructure);
+
+		Select select = from.build();
+
+		SqlRenderer sqlRenderer = getSqlRenderer();
+		return sqlRenderer.render(select);
+	}
+
+	private SqlRenderer getSqlRenderer() {
+
+		RenderContext renderContext = new RenderContextFactory(dialect).createRenderContext();
+		return SqlRenderer.create(renderContext);
+	}
+
+	private static SelectBuilder.SelectFromAndJoin createSelect(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select queryStructure) {
 		List<? extends AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.AnalyticColumn> analyticColumns = queryStructure
 				.getColumns();
 
@@ -81,9 +97,7 @@ public class AnalyticSqlGenerator {
 			tableColumns.add(table.column(columnName));
 		}
 
-		Select select = StatementBuilder.select(tableColumns).from(table).build();
-
-		RenderContext renderContext = new RenderContextFactory(AnsiDialect.INSTANCE).createRenderContext();
-		return SqlRenderer.create(renderContext).render(select);
+		SelectBuilder.SelectFromAndJoin from = StatementBuilder.select(tableColumns).from(table);
+		return from;
 	}
 }
