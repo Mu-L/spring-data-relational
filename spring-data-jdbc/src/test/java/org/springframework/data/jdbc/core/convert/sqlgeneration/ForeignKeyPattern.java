@@ -60,7 +60,7 @@ record ForeignKeyPattern<T, C> (T table, C name) implements Pattern {
 	@Nullable
 	static AnalyticStructureBuilder<?, ?>.ForeignKey extractForeignKey(
 			AnalyticStructureBuilder<?, ?>.AnalyticColumn column) {
-		return AnalyticStructureBuilderAssert.extract(AnalyticStructureBuilder.ForeignKey.class, column);
+		return AnalyticStructureBuilderSelectAssert.extract(AnalyticStructureBuilder.ForeignKey.class, column);
 	}
 
 	@Override

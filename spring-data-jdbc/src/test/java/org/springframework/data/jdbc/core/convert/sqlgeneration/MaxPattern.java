@@ -38,7 +38,7 @@ record MaxPattern<C> (Pattern left, Pattern right) implements Pattern {
 
 	@Nullable
 	private AnalyticStructureBuilder.Max extractMax(AnalyticStructureBuilder<?, ?>.AnalyticColumn other) {
-		return AnalyticStructureBuilderAssert.extract(AnalyticStructureBuilder.Max.class, other);
+		return AnalyticStructureBuilderSelectAssert.extract(AnalyticStructureBuilder.Max.class, other);
 	}
 
 	@Override

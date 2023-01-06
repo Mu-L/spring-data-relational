@@ -56,7 +56,7 @@ class RowNumberPattern implements Pattern {
 
 	@Nullable
 	private AnalyticStructureBuilder.RowNumber extractRn(AnalyticStructureBuilder<?, ?>.AnalyticColumn other) {
-		return AnalyticStructureBuilderAssert.extract(AnalyticStructureBuilder.RowNumber.class, other);
+		return AnalyticStructureBuilderSelectAssert.extract(AnalyticStructureBuilder.RowNumber.class, other);
 	}
 
 	@Override
