@@ -16,17 +16,14 @@
 
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.jdbc.core.mapping.JdbcMappingContext;
-import org.springframework.data.relational.core.dialect.AbstractDialect;
 import org.springframework.data.relational.core.dialect.AnsiDialect;
-import org.springframework.data.relational.core.dialect.LimitClause;
-import org.springframework.data.relational.core.dialect.LockClause;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.sql.IdentifierProcessing;
-
-import static org.assertj.core.api.Assertions.*;
 
 class AnalyticSqlGeneratorTests {
 
@@ -52,9 +49,10 @@ class AnalyticSqlGeneratorTests {
 		String aColumn;
 	}
 
-	static class TestDialect extends AnsiDialect{
+	static class TestDialect extends AnsiDialect {
 
 		static TestDialect INSTANCE = new TestDialect();
+
 		@Override
 		public IdentifierProcessing getIdentifierProcessing() {
 			return IdentifierProcessing.NONE;
