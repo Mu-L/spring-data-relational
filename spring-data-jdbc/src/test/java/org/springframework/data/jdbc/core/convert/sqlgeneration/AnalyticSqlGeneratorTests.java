@@ -41,14 +41,16 @@ class AnalyticSqlGeneratorTests {
 				.selectsFrom("dummy_entity")  ;
 	}
 
-	private RelationalPersistentEntity<?> getRequiredPersistentEntity(Class<DummyEntity> entityClass) {
-		return context.getRequiredPersistentEntity(entityClass);
+	@Test
+	void singleReference(){
+		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(SingleReference.class));
+
+		assertThatParsed(sql) //
+				.hasColumns("single_reference.id", "dummy_entity.id", "dummy_entity.a_column");
 	}
 
-	static class DummyEntity {
-		@Id Long id;
-
-		String aColumn;
+	private RelationalPersistentEntity<?> getRequiredPersistentEntity(Class<?> entityClass) {
+		return context.getRequiredPersistentEntity(entityClass);
 	}
 
 	static class TestDialect extends AnsiDialect {
@@ -59,5 +61,16 @@ class AnalyticSqlGeneratorTests {
 		public IdentifierProcessing getIdentifierProcessing() {
 			return IdentifierProcessing.NONE;
 		}
+	}
+
+	static class DummyEntity {
+		@Id Long id;
+
+		String aColumn;
+	}
+
+	static class SingleReference {
+		@Id Long id;
+		DummyEntity dummy;
 	}
 }
