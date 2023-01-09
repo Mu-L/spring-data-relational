@@ -28,17 +28,17 @@ class AggregateToStructureUnitTests {
 
 	AggregateToStructure ats = new AggregateToStructure();
 
-
+	RelationalPersistentEntity<?> dummyEntity = context.getRequiredPersistentEntity(DummyEntity.class);
 
 	@Test
 	void simpleTable() {
-		RelationalPersistentEntity<?> dummyEntity = context.getRequiredPersistentEntity(DummyEntity.class);
-		AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select = ats.createSelectStructure(dummyEntity);
+		AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select = ats
+				.createSelectStructure(dummyEntity);
 
-		AnalyticAssertions
-				.assertThat(select)
-				.hasExactColumns(dummyEntity.getPersistentProperty("id"), dummyEntity.getPersistentProperty("aColumn"));
-
+		AnalyticAssertions.assertThat(select) //
+				.hasExactColumns( //
+						dummyEntity.getPersistentProperty("id"), //
+						dummyEntity.getPersistentProperty("aColumn"));
 	}
 
 	static class DummyEntity {
