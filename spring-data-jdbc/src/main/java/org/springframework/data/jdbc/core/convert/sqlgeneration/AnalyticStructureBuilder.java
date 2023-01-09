@@ -114,29 +114,6 @@ class AnalyticStructureBuilder<T, C> {
 		return result;
 	}
 
-	private Select replace(Select newNode, List<Select> nodes) {
-
-		Select previousOldNode = null;
-
-		for (Select oldNode : nodes) {
-
-			Object parent = oldNode.getParent();
-			if (previousOldNode == null || !previousOldNode.equals(parent)) {
-
-				newNode = new AnalyticJoin((Select) parent, newNode);
-			} else {
-				newNode = new AnalyticJoin(newNode, ((AnalyticJoin) oldNode).getChild());
-			}
-			previousOldNode = oldNode;
-		}
-
-		return newNode;
-	}
-
-	List<? extends AnalyticColumn> getColumns() {
-		return nodeRoot.getColumns();
-	}
-
 	List<AnalyticColumn> getId() {
 		return nodeRoot.getId();
 	}

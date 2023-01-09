@@ -183,4 +183,16 @@ public class AnalyticStructureBuilderSelectAssert<T, C>
 		}
 		return null;
 	}
+
+	AnalyticStructureBuilderSelectAssert<T, C> hasId(C name) {
+
+		assertThat(actual).matches( //
+				a -> new BasePattern(name) //
+						.matches(((List<AnalyticStructureBuilder.AnalyticColumn>) a.getId()).get(0)), // TODO: this works
+				// only for single
+				// ids.
+				"has Id " + name + ", but was " + actual.getId());
+		return this;
+	}
+
 }

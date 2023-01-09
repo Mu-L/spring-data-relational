@@ -34,7 +34,11 @@ class AggregateToStructure {
 			aggregateRoot
 					.doWithProperties((SimplePropertyHandler) p -> persistentProperties.add((RelationalPersistentProperty) p));
 			for (RelationalPersistentProperty p : persistentProperties) {
-				td = td.withColumns(p);
+				if (p.isIdProperty()) {
+					td = td.withId(p);
+				} else {
+					td = td.withColumns(p);
+				}
 			}
 			return td;
 		});

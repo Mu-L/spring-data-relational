@@ -18,7 +18,6 @@ package org.springframework.data.jdbc.core.convert.sqlgeneration;
 import static org.assertj.core.api.Assertions.*;
 
 import org.assertj.core.api.AbstractAssert;
-import org.springframework.lang.Nullable;
 
 /**
  * Assertions for {@link AnalyticStructureBuilder}.
@@ -46,8 +45,7 @@ public class AnalyticStructureBuilderAssert<T, C>
 
 	AnalyticStructureBuilderAssert<T, C> hasId(C name) {
 
-		assertThat(actual).matches(a -> new BasePattern(name).matches(a.getId().get(0)),
-				"has Id " + name + ", but was " + actual.getId());
+		selectAssert.hasId(name);
 		return this;
 	}
 

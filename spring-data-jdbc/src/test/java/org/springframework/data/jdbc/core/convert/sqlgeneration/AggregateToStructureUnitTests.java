@@ -38,7 +38,9 @@ class AggregateToStructureUnitTests {
 		AnalyticAssertions.assertThat(select) //
 				.hasExactColumns( //
 						dummyEntity.getPersistentProperty("id"), //
-						dummyEntity.getPersistentProperty("aColumn"));
+						dummyEntity.getPersistentProperty("aColumn"))
+				.isInstanceOf(AnalyticStructureBuilder.TableDefinition.class)
+				.hasId(dummyEntity.getPersistentProperty("id"));
 	}
 
 	static class DummyEntity {
