@@ -23,4 +23,8 @@ public class AnalyticAssertions extends Assertions {
 		return new AnalyticStructureBuilderAssert<>(actual);
 	}
 
+	public static <T, C> AnalyticStructureBuilderSelectAssert<T, C> assertThat(AnalyticStructureBuilder<T, C>.Select select) {
+		return new AnalyticStructureBuilderSelectAssert<>(select);
+	}
+
 }

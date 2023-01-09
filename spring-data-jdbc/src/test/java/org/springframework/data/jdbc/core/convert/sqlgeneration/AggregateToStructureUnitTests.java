@@ -32,9 +32,12 @@ class AggregateToStructureUnitTests {
 
 	@Test
 	void simpleTable() {
-		AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select = ats.createSelectStructure(context.getRequiredPersistentEntity(DummyEntity.class));
+		RelationalPersistentEntity<?> dummyEntity = context.getRequiredPersistentEntity(DummyEntity.class);
+		AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select = ats.createSelectStructure(dummyEntity);
 
-//		AnalyticAssertions.assertThat(select)
+		AnalyticAssertions
+				.assertThat(select)
+				.hasExactColumns(dummyEntity.getPersistentProperty("id"), dummyEntity.getPersistentProperty("aColumn"));
 
 	}
 
