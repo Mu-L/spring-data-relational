@@ -16,7 +16,6 @@
 
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jdbc.core.convert.sqlgeneration.SqlAssert.*;
 
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,7 @@ import org.springframework.data.relational.core.sql.IdentifierProcessing;
 class AnalyticSqlGeneratorTests {
 
 	JdbcMappingContext context = new JdbcMappingContext();
-	AnalyticSqlGenerator sqlGenerator = new AnalyticSqlGenerator(TestDialect.INSTANCE);
+	AnalyticSqlGenerator sqlGenerator = new AnalyticSqlGenerator(TestDialect.INSTANCE, context);
 
 	@Test
 	void simpleEntity() {

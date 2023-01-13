@@ -26,7 +26,7 @@ class AggregateToStructureUnitTests {
 
 	JdbcMappingContext context = new JdbcMappingContext();
 
-	AggregateToStructure ats = new AggregateToStructure();
+	AggregateToStructure ats = new AggregateToStructure(context);
 
 	RelationalPersistentEntity<?> dummyEntity = context.getRequiredPersistentEntity(DummyEntity.class);
 

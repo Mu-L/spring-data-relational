@@ -16,10 +16,10 @@
 
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
+import org.springframework.data.jdbc.core.mapping.JdbcMappingContext;
 import org.springframework.data.relational.core.dialect.AnsiDialect;
 import org.springframework.data.relational.core.dialect.RenderContextFactory;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
-import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.Select;
 import org.springframework.data.relational.core.sql.render.RenderContext;
 import org.springframework.data.relational.core.sql.render.SqlRenderer;
@@ -28,11 +28,16 @@ public class AnalyticSqlGenerator {
 
 	private final AnsiDialect dialect;
 
-	private final AggregateToStructure aggregateToStructure = new AggregateToStructure();
+	private final JdbcMappingContext context;
+	private final AggregateToStructure aggregateToStructure;
+
 	private final StructureToSelect structureToSelect = new StructureToSelect();
 
-	public AnalyticSqlGenerator(AnsiDialect dialect) {
+	public AnalyticSqlGenerator(AnsiDialect dialect, JdbcMappingContext context) {
+
 		this.dialect = dialect;
+		this.context = context;
+		this.aggregateToStructure = new AggregateToStructure(context);
 	}
 
 	public String findAll(RelationalPersistentEntity<?> aggregateRoot) {

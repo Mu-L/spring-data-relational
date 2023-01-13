@@ -16,33 +16,61 @@
 
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.data.jdbc.core.mapping.JdbcMappingContext;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 
-import java.util.ArrayList;
-import java.util.List;
-
 class AggregateToStructure {
+
+	private final JdbcMappingContext context;
+
+	AggregateToStructure(JdbcMappingContext context) {
+		this.context = context;
+	}
+
 	AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select createSelectStructure(
 			RelationalPersistentEntity<?> aggregateRoot) {
 
 		AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty> builder = new AnalyticStructureBuilder<>();
 
-		builder.addTable(aggregateRoot, td -> {
-			List<RelationalPersistentProperty> persistentProperties = new ArrayList<>();
-			aggregateRoot
-					.doWithProperties((SimplePropertyHandler) p -> persistentProperties.add((RelationalPersistentProperty) p));
-			for (RelationalPersistentProperty p : persistentProperties) {
-				if (p.isIdProperty()) {
-					td = td.withId(p);
-				} else {
-					td = td.withColumns(p);
-				}
-			}
-			return td;
-		});
+		builder.addTable(aggregateRoot, td -> configureTableDefinition(builder, aggregateRoot, td));
+		addReferencedEntities(builder, aggregateRoot);
 
 		return builder.getSelect();
+	}
+
+	private void addReferencedEntities(
+			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty> builder,
+			RelationalPersistentEntity<?> currentEntity) {
+
+		currentEntity.doWithProperties((PropertyHandler<RelationalPersistentProperty>)  p -> {
+			if (p.isEntity()) {
+				RelationalPersistentEntity<?> entity = context.getRequiredPersistentEntity(p.getActualType());
+				builder.addChildTo(p.getOwner(), entity, td2 -> configureTableDefinition(builder, entity, td2));
+			}
+		});
+	}
+
+	private AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.TableDefinition configureTableDefinition(
+			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty> builder,
+			RelationalPersistentEntity<?> aggregateRoot,
+			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.TableDefinition td) {
+
+		List<RelationalPersistentProperty> persistentProperties = new ArrayList<>();
+		aggregateRoot
+				.doWithProperties((SimplePropertyHandler) p -> persistentProperties.add((RelationalPersistentProperty) p));
+		for (RelationalPersistentProperty p : persistentProperties) {
+			if (p.isIdProperty()) {
+				td = td.withId(p);
+			} else {
+				td = td.withColumns(p);
+			}
+		}
+		return td;
 	}
 }
