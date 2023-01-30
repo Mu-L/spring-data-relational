@@ -67,6 +67,7 @@ class StructureToSelect {
 	}
 
 	private Condition createJoinCondition(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.AnalyticJoin analyticJoin) {
+		
 		for (AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.JoinCondition joinCondition : analyticJoin.getConditions()) {
 			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.AnalyticColumn left = joinCondition.getLeft();
 			joinCondition.getRight();
