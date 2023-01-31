@@ -77,8 +77,8 @@ class StructureToSelect {
 		return selectAndParent.join(childQuery).on(condition);
 	}
 
-	private String getAliasFor(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select) {
-		return aliasFactory.getAliasFor(select);
+	private String getAliasFor(Object object) {
+		return aliasFactory.getAliasFor(object);
 	}
 
 	private static Collection<Expression> getSelectList(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select parent, TableLike parentTable) {
@@ -147,9 +147,8 @@ class StructureToSelect {
 				// TODO: handle all the special join management columns.
 				continue;
 			}
-			SqlIdentifier tableName = property.getOwner().getTableName();
 			SqlIdentifier columnName = property.getColumnName();
-			Column column = table.column(columnName);
+			Column column = table.column(columnName).as(getAliasFor(property));
 			tableColumns.add(column);
 			System.out.println("column " + column);
 

@@ -16,41 +16,54 @@
 
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
+import java.util.HashMap;
+
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 
-import java.util.HashMap;
-
 public class AliasFactory {
 
+	public static final int MAX_NAME_HINT_LENGTH = 20;
 	HashMap<Object, String> cache = new HashMap<>();
 	private int tableIndex = 0;
 	private int viewIndex = 0;
 
-	String getAliasFor(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select) {
+	String getAliasFor(Object key) {
 
-		return cache.computeIfAbsent(select, k -> createAlias(select));
+		String values = cache.computeIfAbsent(key, k -> createAlias(k));
+
+		return values;
 	}
 
-	private String createAlias(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select) {
+	private String createAlias(Object key) {
 
-		if (select instanceof AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.TableDefinition tableDefinition) {
+		if (key instanceof AnalyticStructureBuilder.TableDefinition tableDefinition) {
+			return createAlias(tableDefinition.getTable());
+		}
 
-			String baseTableName = tableDefinition.getTable().getTableName().toString();
+		if (key instanceof RelationalPersistentEntity rpe) {
+
+			String baseTableName = rpe.getTableName().toString();
 			return "T%04d_".formatted(++tableIndex) + sanitize(baseTableName);
 		}
 
-		if (select instanceof AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.AnalyticView view) {
-			return "V%04d".formatted(++viewIndex) ;
+		if (key instanceof RelationalPersistentProperty rpp) {
+
+			String baseColumnName = rpp.getName();
+			return "C%04d_".formatted(++tableIndex) + sanitize(baseColumnName);
 		}
 
-		throw new UnsupportedOperationException("can't generate alias for " + select);
+		if (key instanceof AnalyticStructureBuilder.AnalyticView) {
+			return "V%04d".formatted(++viewIndex);
+		}
+
+		throw new UnsupportedOperationException("can't generate alias for " + key);
 	}
 
 	private String sanitize(String baseTableName) {
 
 		String lettersOnly = baseTableName.replaceAll("[^A-Za-z]+", "");
-		return lettersOnly.toUpperCase().substring(0, 10);
+		return lettersOnly.toUpperCase().substring(0, Math.min(MAX_NAME_HINT_LENGTH, lettersOnly.length()));
 	}
 
 }
