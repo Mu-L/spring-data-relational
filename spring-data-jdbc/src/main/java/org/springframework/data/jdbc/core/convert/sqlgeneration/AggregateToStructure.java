@@ -38,7 +38,7 @@ class AggregateToStructure {
 
 		AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty> builder = new AnalyticStructureBuilder<>();
 
-		builder.addTable(aggregateRoot, td -> configureTableDefinition(builder, aggregateRoot, td));
+		builder.addTable(aggregateRoot, td -> configureTableDefinition(aggregateRoot, td));
 		addReferencedEntities(builder, aggregateRoot);
 
 		return builder.getSelect();
@@ -48,16 +48,15 @@ class AggregateToStructure {
 			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty> builder,
 			RelationalPersistentEntity<?> currentEntity) {
 
-		currentEntity.doWithProperties((PropertyHandler<RelationalPersistentProperty>)  p -> {
+		currentEntity.doWithProperties((PropertyHandler<RelationalPersistentProperty>) p -> {
 			if (p.isEntity()) {
 				RelationalPersistentEntity<?> entity = context.getRequiredPersistentEntity(p.getActualType());
-				builder.addChildTo(p.getOwner(), entity, td2 -> configureTableDefinition(builder, entity, td2));
+				builder.addChildTo(p.getOwner(), entity, td2 -> configureTableDefinition(entity, td2));
 			}
 		});
 	}
 
 	private AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.TableDefinition configureTableDefinition(
-			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty> builder,
 			RelationalPersistentEntity<?> aggregateRoot,
 			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.TableDefinition td) {
 
@@ -68,7 +67,9 @@ class AggregateToStructure {
 			if (p.isIdProperty()) {
 				td = td.withId(p);
 			} else {
-				td = td.withColumns(p);
+				if (!p.isEntity()) {
+					td = td.withColumns(p);
+				}
 			}
 		}
 		return td;

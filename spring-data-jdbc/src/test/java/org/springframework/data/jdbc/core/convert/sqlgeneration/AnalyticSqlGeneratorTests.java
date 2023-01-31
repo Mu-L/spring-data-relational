@@ -46,7 +46,7 @@ class AnalyticSqlGeneratorTests {
 
 		System.out.println(sql);
 		assertThatParsed(sql) //
-				.hasColumns("single_reference.id", "dummy_entity.id", "dummy_entity.a_column");
+				.hasColumns("single_reference.id", "child.id", "child.a_column");
 	}
 
 	private RelationalPersistentEntity<?> getRequiredPersistentEntity(Class<?> entityClass) {
