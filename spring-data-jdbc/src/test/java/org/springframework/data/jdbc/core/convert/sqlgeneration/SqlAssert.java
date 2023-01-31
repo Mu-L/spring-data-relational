@@ -57,13 +57,12 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			selectItem.accept(new SelectItemVisitorAdapter() {
 				@Override
 				public void visit(SelectExpressionItem item) {
-					final Alias alias = item.getAlias();
 					actualColumns.add(item.getExpression().toString());
 				}
 			});
 		}
 
-		Assertions.assertThat(actualColumns).containsExactlyInAnyOrder(columns);
+		Assertions.assertThat(actualColumns).describedAs("hasColumns of " + getSelect().toString()).containsExactlyInAnyOrder(columns);
 
 		return this;
 	}

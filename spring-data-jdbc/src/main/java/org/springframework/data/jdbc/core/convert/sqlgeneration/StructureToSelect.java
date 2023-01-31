@@ -29,6 +29,8 @@ import java.util.function.Function;
 
 class StructureToSelect {
 
+	AliasFactory aliasFactory = new AliasFactory();
+
 	SelectBuilder.BuildSelect createSelect(
 			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select queryStructure) {
 
@@ -60,7 +62,7 @@ class StructureToSelect {
 
 		AnalyticStructureBuilder.Select child = analyticJoin.getChild();
 		SelectBuilder.BuildSelect childSelect = createSelect(child);
-		InlineQuery childQuery = InlineQuery.create(childSelect.build(), "child");
+		InlineQuery childQuery = InlineQuery.create(childSelect.build(), getAliasFor(child));
 
 		Collection columns = getSelectList(child, childQuery);
 
@@ -73,6 +75,10 @@ class StructureToSelect {
 
 		Condition condition = createJoinCondition(analyticJoin);
 		return selectAndParent.join(childQuery).on(condition);
+	}
+
+	private String getAliasFor(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select select) {
+		return aliasFactory.getAliasFor(select);
 	}
 
 	private static Collection<Expression> getSelectList(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select parent, TableLike parentTable) {
@@ -103,7 +109,7 @@ class StructureToSelect {
 	private TableLike tableFor(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select parent) {
 
 		if (parent instanceof AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.TableDefinition tableDefinition) {
-			return Table.create(tableDefinition.getTable().getTableName());
+			return Table.create(tableDefinition.getTable().getTableName()).as(getAliasFor(parent));
 		}
 
 		throw new UnsupportedOperationException("can only create table names for TableDefinitions right now") ;
@@ -130,7 +136,7 @@ class StructureToSelect {
 				.getColumns();
 
 		Collection<Expression> tableColumns = new ArrayList<>();
-		Table table = null;
+		TableLike table = tableFor(tableDefinition);
 		for (AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.AnalyticColumn analyticColumn : analyticColumns) {
 
 			if (analyticColumn instanceof AnalyticStructureBuilder.ForeignKey) {
@@ -143,7 +149,6 @@ class StructureToSelect {
 			}
 			SqlIdentifier tableName = property.getOwner().getTableName();
 			SqlIdentifier columnName = property.getColumnName();
-			table = Table.create(tableName);
 			Column column = table.column(columnName);
 			tableColumns.add(column);
 			System.out.println("column " + column);

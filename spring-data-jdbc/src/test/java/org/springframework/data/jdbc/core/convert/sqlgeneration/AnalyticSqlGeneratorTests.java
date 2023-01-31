@@ -44,7 +44,6 @@ class AnalyticSqlGeneratorTests {
 	void singleReference(){
 		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(SingleReference.class));
 
-		System.out.println(sql);
 		assertThatParsed(sql) //
 				.hasColumns("single_reference.id", "child.id", "child.a_column");
 	}
