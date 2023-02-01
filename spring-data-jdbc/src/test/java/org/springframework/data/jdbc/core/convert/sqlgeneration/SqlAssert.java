@@ -17,7 +17,6 @@
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -28,11 +27,16 @@ import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
+import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 
 public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
+
+	private AliasFactory aliasFactory;
 
 	protected SqlAssert(Statement actual, Class<?> selfType) {
 		super(actual, selfType);
@@ -52,19 +56,101 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 
 	public SqlAssert hasColumns(String... columns) {
 
-		List<String> actualColumns = new ArrayList<>();
+		List<ActualColumn> actualColumns = collectActualColumns();
+
+		List<String> notFound = new ArrayList<>();
+
+		for (String column : columns) {
+			for (ActualColumn currentColumn : actualColumns) {
+				if (currentColumn.column.equals(column)) {
+					actualColumns.remove(currentColumn);
+					break;
+				}
+			}
+			notFound.add(column);
+		}
+
+		if (actualColumns.isEmpty() && notFound.isEmpty()) {
+			return this;
+		}
+
+		String failureMessage = "Expected %s to contain columns representing %s %n but ";
+		if (!notFound.isEmpty()) {
+			failureMessage += "no columns for %s were found";
+		}
+		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
+			failureMessage += "%n and ";
+		}
+		if (!actualColumns.isEmpty()) {
+			failureMessage += "the columns %s where not expected.";
+		}
+
+		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
+			throw failure(failureMessage, getSelect().toString(), columns, notFound, actualColumns);
+		}
+		if (!notFound.isEmpty()) {
+			throw failure(failureMessage, getSelect().toString(), columns, notFound);
+		} else {
+			throw failure(failureMessage, getSelect().toString(), columns, actualColumns);
+		}
+
+	}
+
+	public SqlAssert hasColumns(ColumnsSpec columnsSpec) {
+
+		List<ActualColumn> actualColumns = collectActualColumns();
+
+		List<RelationalPersistentProperty> notFound = new ArrayList<>();
+
+		columnsSpec.foreach((RelationalPersistentProperty property) -> {
+			for (ActualColumn currentColumn : actualColumns) {
+				String alias = aliasFactory.getAliasFor(property);
+				if (currentColumn.alias.equals(alias) || currentColumn.column.equals(alias)) {
+					actualColumns.remove(currentColumn);
+					return;
+				}
+			}
+			notFound.add(property);
+		});
+
+		if (actualColumns.isEmpty() && notFound.isEmpty()) {
+			return this;
+		}
+
+		String failureMessage = "Expected %s to contain columns representing %s %n but ";
+		if (!notFound.isEmpty()) {
+			failureMessage += "no columns for %s were found";
+		}
+		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
+			failureMessage += "%n and ";
+		}
+		if (!actualColumns.isEmpty()) {
+			failureMessage += "the columns %s where not expected.";
+		}
+
+		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
+			throw failure(failureMessage, getSelect().toString(), columnsSpec, notFound, actualColumns);
+		}
+		if (!notFound.isEmpty()) {
+			throw failure(failureMessage, getSelect().toString(), columnsSpec, notFound);
+		} else {
+			throw failure(failureMessage, getSelect().toString(), columnsSpec, actualColumns);
+		}
+
+	}
+
+	private List<ActualColumn> collectActualColumns() {
+
+		List<ActualColumn> actualColumns = new ArrayList<>();
 		for (SelectItem selectItem : getSelect().getSelectItems()) {
 			selectItem.accept(new SelectItemVisitorAdapter() {
 				@Override
 				public void visit(SelectExpressionItem item) {
-					actualColumns.add(item.getExpression().toString());
+					actualColumns.add(new ActualColumn(item.getExpression().toString(), String.valueOf(item.getAlias())));
 				}
 			});
 		}
-
-		Assertions.assertThat(actualColumns).describedAs("hasColumns of " + getSelect().toString()).containsExactlyInAnyOrder(columns);
-
-		return this;
+		return actualColumns;
 	}
 
 	public SqlAssert selectsFrom(String tableName) {
@@ -78,4 +164,56 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 	private PlainSelect getSelect() {
 		return (PlainSelect) ((Select) actual).getSelectBody();
 	}
+
+	static ColumnsSpec from(RelationalPersistentEntity<?> entity) {
+		return new ColumnsSpec(entity);
+	}
+
+	public SqlAssert withAliases(AliasFactory aliasFactory) {
+		this.aliasFactory = aliasFactory;
+		return this;
+	}
+
+	static class ColumnsSpec {
+		private final RelationalPersistentEntity<?> currentEntity;
+		private final List<RelationalPersistentProperty> properties = new ArrayList<>();
+
+		public ColumnsSpec(RelationalPersistentEntity<?> entity) {
+			currentEntity = entity;
+		}
+
+		public ColumnsSpec property(String name) {
+			properties.add(currentEntity.getRequiredPersistentProperty(name));
+			return this;
+		}
+
+		public void foreach(Consumer<? super RelationalPersistentProperty> propertyConsumer) {
+			properties.forEach(propertyConsumer);
+		}
+	}
+
+	private record ActualColumn(String expression, String table, String column, String alias) {
+		ActualColumn(String expression, String alias) {
+			this(expression, table(expression), column(expression), alias);
+		}
+
+		static String table(String expression) {
+
+			int index = expression.indexOf(".");
+			if (index > 0) {
+				return expression.substring(0, index);
+			}
+			return expression;
+		}
+
+		static String column(String expression) {
+
+			int index = expression.indexOf(".");
+			if (index > 0) {
+				return expression.substring(index + 1);
+			}
+			return expression;
+		}
+	}
+
 }

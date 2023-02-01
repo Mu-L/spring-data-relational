@@ -28,20 +28,24 @@ import org.springframework.data.relational.core.sql.IdentifierProcessing;
 class AnalyticSqlGeneratorTests {
 
 	JdbcMappingContext context = new JdbcMappingContext();
-	AnalyticSqlGenerator sqlGenerator = new AnalyticSqlGenerator(TestDialect.INSTANCE, context);
+	AliasFactory aliasFactory = new AliasFactory();
+	AnalyticSqlGenerator sqlGenerator = new AnalyticSqlGenerator(TestDialect.INSTANCE, new AggregateToStructure(context),
+			new StructureToSelect(aliasFactory));
 
 	@Test
 	void simpleEntity() {
 
-		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(DummyEntity.class));
+		RelationalPersistentEntity<?> dummyEntity = getRequiredPersistentEntity(DummyEntity.class);
+		String sql = sqlGenerator.findAll(dummyEntity);
 
-		assertThatParsed(sql) //
+		assertThatParsed(sql).withAliases(aliasFactory)//
+				.hasColumns(from(dummyEntity).property("id").property("aColumn"))
 				.hasColumns("dummy_entity.id", "dummy_entity.a_column") //
-				.selectsFrom("dummy_entity")  ;
+				.selectsFrom("dummy_entity");
 	}
 
 	@Test
-	void singleReference(){
+	void singleReference() {
 		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(SingleReference.class));
 
 		assertThatParsed(sql) //

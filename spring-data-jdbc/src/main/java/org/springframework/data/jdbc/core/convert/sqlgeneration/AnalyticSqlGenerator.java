@@ -28,16 +28,20 @@ public class AnalyticSqlGenerator {
 
 	private final AnsiDialect dialect;
 
-	private final JdbcMappingContext context;
 	private final AggregateToStructure aggregateToStructure;
-
-	private final StructureToSelect structureToSelect = new StructureToSelect();
+	private final StructureToSelect structureToSelect;
 
 	public AnalyticSqlGenerator(AnsiDialect dialect, JdbcMappingContext context) {
 
+		this(dialect, new AggregateToStructure(context), new StructureToSelect());
+	}
+
+	AnalyticSqlGenerator(AnsiDialect dialect, AggregateToStructure aggregateToStructure,
+			StructureToSelect structureToSelect) {
+
 		this.dialect = dialect;
-		this.context = context;
-		this.aggregateToStructure = new AggregateToStructure(context);
+		this.aggregateToStructure = aggregateToStructure;
+		this.structureToSelect = structureToSelect;
 	}
 
 	public String findAll(RelationalPersistentEntity<?> aggregateRoot) {

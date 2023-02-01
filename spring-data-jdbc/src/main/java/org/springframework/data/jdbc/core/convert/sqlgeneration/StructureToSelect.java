@@ -16,20 +16,24 @@
 
 package org.springframework.data.jdbc.core.convert.sqlgeneration;
 
-import org.springframework.data.jdbc.core.convert.Identifier;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.function.Function;
 
 class StructureToSelect {
 
-	AliasFactory aliasFactory = new AliasFactory();
+	private final AliasFactory aliasFactory;
+
+	StructureToSelect() {
+		this( new AliasFactory());
+	}
+	StructureToSelect(AliasFactory aliasFactory) {
+		this.aliasFactory = aliasFactory;
+	}
 
 	SelectBuilder.BuildSelect createSelect(
 			AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select queryStructure) {
