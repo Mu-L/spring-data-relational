@@ -39,17 +39,29 @@ class AnalyticSqlGeneratorTests {
 		String sql = sqlGenerator.findAll(dummyEntity);
 
 		assertThatParsed(sql).withAliases(aliasFactory)//
-				.hasColumns(from(dummyEntity).property("id").property("aColumn"))
-				.hasColumns("dummy_entity.id", "dummy_entity.a_column") //
-				.selectsFrom("dummy_entity");
+				.hasColumns( //
+						from(dummyEntity) //
+								.property("id") //
+								.property("aColumn"));
 	}
 
 	@Test
 	void singleReference() {
-		String sql = sqlGenerator.findAll(getRequiredPersistentEntity(SingleReference.class));
+		RelationalPersistentEntity<?> singleRefEntity = getRequiredPersistentEntity(SingleReference.class);
+		String sql = sqlGenerator.findAll(singleRefEntity);
 
 		assertThatParsed(sql) //
-				.hasColumns("single_reference.id", "child.id", "child.a_column");
+				.withAliases(aliasFactory) //
+				.hasColumns( //
+						from(singleRefEntity) //
+								.property("id") //
+								.property( "dummy.id") //
+								.property( "dummy.aColumn") //
+				);
+	}
+
+	private ColumnsSpec from(RelationalPersistentEntity<?> entity) {
+		return SqlAssert.from(context, entity);
 	}
 
 	private RelationalPersistentEntity<?> getRequiredPersistentEntity(Class<?> entityClass) {

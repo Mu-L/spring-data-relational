@@ -27,12 +27,16 @@ import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.util.Strings;
+import org.springframework.data.mapping.PersistentPropertyPath;
+import org.springframework.data.relational.core.mapping.RelationalMappingContext;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 
@@ -76,7 +80,7 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			return this;
 		}
 
-		String failureMessage = "Expected %s to contain columns representing %n%s %n but ";
+		String failureMessage = "Expected %s%n to contain columns representing %n%s %n but ";
 		if (!notFound.isEmpty()) {
 			failureMessage += "no columns for %s were found";
 		}
@@ -119,7 +123,7 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			return this;
 		}
 
-		String failureMessage = "Expected %s to contain columns representing%n %s %n but ";
+		String failureMessage = "Expected %s%n to contain columns representing%n %s %n but ";
 		if (!notFound.isEmpty()) {
 			failureMessage += "no columns for %s were found";
 		}
@@ -130,11 +134,14 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			failureMessage += "the columns %s where not expected.";
 		}
 
+
+		String notFoundString = notFound.stream().map(key -> columnsSpec.paths.get(key)).collect(Collectors.joining(", "));
+
 		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
-			throw failure(failureMessage, getSelect().toString(), columnsSpec, notFound, actualColumns);
+			throw failure(failureMessage, getSelect().toString(), columnsSpec, notFoundString, actualColumns);
 		}
 		if (!notFound.isEmpty()) {
-			throw failure(failureMessage, getSelect().toString(), columnsSpec, notFound);
+			throw failure(failureMessage, getSelect().toString(), columnsSpec, notFoundString);
 		} else {
 			throw failure(failureMessage, getSelect().toString(), columnsSpec, actualColumns);
 		}
@@ -148,7 +155,7 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			selectItem.accept(new SelectItemVisitorAdapter() {
 				@Override
 				public void visit(SelectExpressionItem item) {
-					actualColumns.add(new ActualColumn(item.getExpression().toString(), String.valueOf(item.getAlias())));
+					actualColumns.add(new ActualColumn(item.getExpression().toString(),item.getAlias() == null ? "" :  item.getAlias().toString()));
 				}
 			});
 		}
@@ -167,8 +174,8 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 		return (PlainSelect) ((Select) actual).getSelectBody();
 	}
 
-	static ColumnsSpec from(RelationalPersistentEntity<?> entity) {
-		return new ColumnsSpec(entity);
+	static ColumnsSpec from(RelationalMappingContext context, RelationalPersistentEntity<?> entity) {
+		return new ColumnsSpec(context, entity);
 	}
 
 	public SqlAssert withAliases(AliasFactory aliasFactory) {
@@ -177,20 +184,32 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 	}
 
 	static class ColumnsSpec {
+		private final RelationalMappingContext context;
 		private final RelationalPersistentEntity<?> currentEntity;
-		private final List<RelationalPersistentProperty> properties = new ArrayList<>();
+		final Map<RelationalPersistentProperty, String> paths = new HashMap<>();
 
-		public ColumnsSpec(RelationalPersistentEntity<?> entity) {
-			currentEntity = entity;
+		public ColumnsSpec(RelationalMappingContext context, RelationalPersistentEntity<?> entity) {
+
+			this.context = context;
+			this.currentEntity = entity;
 		}
 
-		public ColumnsSpec property(String name) {
-			properties.add(currentEntity.getRequiredPersistentProperty(name));
+		public ColumnsSpec property(String pathString) {
+
+			PersistentPropertyPath<RelationalPersistentProperty> path = context.getPersistentPropertyPath(pathString, currentEntity.getType());
+
+			RelationalPersistentProperty leafProperty = path.getLeafProperty();
+			paths.put(leafProperty, pathString);
 			return this;
 		}
 
 		public void foreach(Consumer<? super RelationalPersistentProperty> propertyConsumer) {
-			properties.forEach(propertyConsumer);
+			paths.keySet().forEach(propertyConsumer);
+		}
+
+		@Override
+		public String toString() {
+			return paths.values().toString();
 		}
 	}
 
@@ -199,7 +218,7 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			this(expression, table(expression), column(expression), alias.replace(" AS ", ""));
 		}
 
-		static String table(String expression) {
+		private static String table(String expression) {
 
 			int index = expression.indexOf(".");
 			if (index > 0) {
@@ -219,7 +238,8 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 
 		@Override
 		public String toString() {
-			return expression + (alias == null || alias.isBlank() ? null : " AS " + alias);		}
+			return expression + (alias == null || alias.isBlank() ? "" : (" AS " + alias));
+		}
 	}
 
 }

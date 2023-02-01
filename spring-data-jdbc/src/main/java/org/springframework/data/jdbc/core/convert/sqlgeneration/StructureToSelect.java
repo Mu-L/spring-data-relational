@@ -85,7 +85,7 @@ class StructureToSelect {
 		return aliasFactory.getAliasFor(object);
 	}
 
-	private static Collection<Expression> getSelectList(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select parent, TableLike parentTable) {
+	private Collection<Expression> getSelectList(AnalyticStructureBuilder<RelationalPersistentEntity, RelationalPersistentProperty>.Select parent, TableLike parentTable) {
 
 		Collection<Expression> tableColumns = new ArrayList<>();
 
@@ -102,7 +102,7 @@ class StructureToSelect {
 
 			SqlIdentifier columnName = property.getColumnName();
 
-			Column column = parentTable.column(columnName);
+			Column column = parentTable.column(columnName).as(getAliasFor(property));
 			tableColumns.add(column);
 			System.out.println("column " + column);
 
