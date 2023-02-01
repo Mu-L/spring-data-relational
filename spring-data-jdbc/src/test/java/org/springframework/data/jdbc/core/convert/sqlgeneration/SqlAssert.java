@@ -26,11 +26,13 @@ import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.util.Strings;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 
@@ -74,7 +76,7 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			return this;
 		}
 
-		String failureMessage = "Expected %s to contain columns representing %s %n but ";
+		String failureMessage = "Expected %s to contain columns representing %n%s %n but ";
 		if (!notFound.isEmpty()) {
 			failureMessage += "no columns for %s were found";
 		}
@@ -85,15 +87,15 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			failureMessage += "the columns %s where not expected.";
 		}
 
+		String expectedColumns = Arrays.toString(columns);
 		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
-			throw failure(failureMessage, getSelect().toString(), columns, notFound, actualColumns);
+			throw failure(failureMessage, getSelect().toString(), expectedColumns, notFound, actualColumns);
 		}
 		if (!notFound.isEmpty()) {
-			throw failure(failureMessage, getSelect().toString(), columns, notFound);
+			throw failure(failureMessage, getSelect().toString(), expectedColumns, notFound);
 		} else {
-			throw failure(failureMessage, getSelect().toString(), columns, actualColumns);
+			throw failure(failureMessage, getSelect().toString(), expectedColumns, actualColumns);
 		}
-
 	}
 
 	public SqlAssert hasColumns(ColumnsSpec columnsSpec) {
@@ -117,7 +119,7 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			return this;
 		}
 
-		String failureMessage = "Expected %s to contain columns representing %s %n but ";
+		String failureMessage = "Expected %s to contain columns representing%n %s %n but ";
 		if (!notFound.isEmpty()) {
 			failureMessage += "no columns for %s were found";
 		}
@@ -194,7 +196,7 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 
 	private record ActualColumn(String expression, String table, String column, String alias) {
 		ActualColumn(String expression, String alias) {
-			this(expression, table(expression), column(expression), alias);
+			this(expression, table(expression), column(expression), alias.replace(" AS ", ""));
 		}
 
 		static String table(String expression) {
@@ -214,6 +216,10 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 			}
 			return expression;
 		}
+
+		@Override
+		public String toString() {
+			return expression + (alias == null || alias.isBlank() ? null : " AS " + alias);		}
 	}
 
 }

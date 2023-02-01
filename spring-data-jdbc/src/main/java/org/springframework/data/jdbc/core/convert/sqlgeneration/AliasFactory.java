@@ -27,6 +27,7 @@ public class AliasFactory {
 	HashMap<Object, String> cache = new HashMap<>();
 	private int tableIndex = 0;
 	private int viewIndex = 0;
+	private int columnIndex = 0;
 
 	String getAliasFor(Object key) {
 
@@ -50,7 +51,7 @@ public class AliasFactory {
 		if (key instanceof RelationalPersistentProperty rpp) {
 
 			String baseColumnName = rpp.getName();
-			return "C%04d_".formatted(++tableIndex) + sanitize(baseColumnName);
+			return "C%04d_".formatted(++columnIndex) + sanitize(baseColumnName);
 		}
 
 		if (key instanceof AnalyticStructureBuilder.AnalyticView) {
