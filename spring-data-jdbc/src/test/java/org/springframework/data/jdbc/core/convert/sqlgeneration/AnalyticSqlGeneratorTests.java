@@ -47,8 +47,11 @@ class AnalyticSqlGeneratorTests {
 
 	@Test
 	void singleReference() {
+
 		RelationalPersistentEntity<?> singleRefEntity = getRequiredPersistentEntity(SingleReference.class);
 		String sql = sqlGenerator.findAll(singleRefEntity);
+
+		System.out.println(sql);
 
 		assertThatParsed(sql) //
 				.withAliases(aliasFactory) //
