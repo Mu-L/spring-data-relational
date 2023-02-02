@@ -26,33 +26,16 @@ class SqlAssertUnitTests {
 	@Test
 	void acceptsSimpleSelect() {
 		assertThatParsed("select a, b from table") //
-				.hasColumns("a", "b") //
 				.selectsFrom("table");
 	}
 
 	@Test
-	void ignoresOrderOfColumns() {
-
-		assertThatParsed("select a, b from table") //
-				.hasColumns("b", "a");
-	}
-
-	@Test
-	void notesMissingColumn() {
-
-		Assertions.assertThrows( //
-				AssertionError.class,  //
-				() -> assertThatParsed("select a from table") //
-				.hasColumns("a", "b") //
-		);
-	}
-	@Test
 	void notesWrongTableName() {
 
 		Assertions.assertThrows( //
-				AssertionError.class,  //
+				AssertionError.class, //
 				() -> assertThatParsed("select a from table") //
-				.selectsFrom("wrong table") //
+						.selectsFrom("wrong table") //
 		);
 	}
 }

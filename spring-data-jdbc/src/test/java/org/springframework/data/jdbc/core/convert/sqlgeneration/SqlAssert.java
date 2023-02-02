@@ -60,48 +60,6 @@ public class SqlAssert extends AbstractAssert<SqlAssert, Statement> {
 		throw new IllegalStateException("This should be unreachable");
 	}
 
-	public SqlAssert hasColumns(String... columns) {
-
-		List<ActualColumn> actualColumns = collectActualColumns();
-
-		List<String> notFound = new ArrayList<>();
-
-		for (String column : columns) {
-			for (ActualColumn currentColumn : actualColumns) {
-				if (currentColumn.column.equals(column)) {
-					actualColumns.remove(currentColumn);
-					break;
-				}
-			}
-			notFound.add(column);
-		}
-
-		if (actualColumns.isEmpty() && notFound.isEmpty()) {
-			return this;
-		}
-
-		String failureMessage = "Expected %s%n to contain columns representing %n%s %n but ";
-		if (!notFound.isEmpty()) {
-			failureMessage += "no columns for %s were found";
-		}
-		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
-			failureMessage += "%n and ";
-		}
-		if (!actualColumns.isEmpty()) {
-			failureMessage += "the columns %s where not expected.";
-		}
-
-		String expectedColumns = Arrays.toString(columns);
-		if (!notFound.isEmpty() && !actualColumns.isEmpty()) {
-			throw failure(failureMessage, getSelect().toString(), expectedColumns, notFound, actualColumns);
-		}
-		if (!notFound.isEmpty()) {
-			throw failure(failureMessage, getSelect().toString(), expectedColumns, notFound);
-		} else {
-			throw failure(failureMessage, getSelect().toString(), expectedColumns, actualColumns);
-		}
-	}
-
 	public SqlAssert hasColumns(ColumnsSpec columnsSpec) {
 
 		List<ActualColumn> actualColumns = collectActualColumns();
