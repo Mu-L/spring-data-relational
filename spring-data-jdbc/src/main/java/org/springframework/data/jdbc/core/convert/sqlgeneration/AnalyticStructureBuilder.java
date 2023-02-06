@@ -70,7 +70,7 @@ class AnalyticStructureBuilder<T, C> {
 		} else {
 			Select oldNode = nodeParentChain.get(0);
 			if (oldNode instanceof AnalyticJoin aj) {
-				aj.setChild(newNode);
+				aj.setChild(newNode); //TODO: <-- we need to recalculate all fks and stuff
 			}
 
 		}
@@ -169,6 +169,10 @@ class AnalyticStructureBuilder<T, C> {
 
 		protected AnalyticColumn getRowNumber() {
 			return new Literal(1);
+		}
+
+		protected void setRowNumber(AnalyticColumn rowNumber) {
+			throw new UnsupportedOperationException("Can't set a rownumber");
 		}
 	}
 
@@ -296,6 +300,8 @@ class AnalyticStructureBuilder<T, C> {
 
 			this.parent = unwrapParent(parent);
 
+			this.child = wrapChildInView(child);
+
 			TableDefinition td = extractTableDefinition(child);
 			if (td != null) {
 
@@ -317,17 +323,22 @@ class AnalyticStructureBuilder<T, C> {
 						columnsFromJoin.add(maxId);
 					}
 					AnalyticColumn parentRowNumber = parent.getRowNumber();
-					RowNumber rowNumber = new RowNumber(foreignKeys);
-					columnsFromJoin.add(rowNumber);
+
+					AnalyticColumn rowNumber = this.child.getRowNumber();
+					if (rowNumber == null) {
+						rowNumber = new RowNumber(foreignKeys);
+						this.child.setRowNumber(rowNumber);
+					}
 					conditions.add(new JoinCondition(parentRowNumber, rowNumber));
 
 					Max maxRowNumber = new Max(parentRowNumber, rowNumber);
 					this.rowNumber = maxRowNumber;
 					columnsFromJoin.add(maxRowNumber);
 				}
+			} else {
+				System.out.println("wouldn't have thought we could get here");
 			}
 
-			this.child = wrapChildInView(child);
 
 			this.multiplicity = multiplicity;
 
@@ -453,6 +464,7 @@ class AnalyticStructureBuilder<T, C> {
 	class AnalyticView extends SingleTableSelect {
 
 		private final TableDefinition table;
+		private AnalyticColumn rowNumber;
 
 		AnalyticView(TableDefinition table) {
 
@@ -464,7 +476,13 @@ class AnalyticStructureBuilder<T, C> {
 
 		@Override
 		List<? extends AnalyticColumn> getColumns() {
-			return table.getColumns();
+
+			ArrayList<AnalyticColumn> allColumns = new ArrayList<>(table.getColumns());
+
+			Assert.state(rowNumber != null, "Rownumber must not be null at this state");
+			allColumns.add(rowNumber);
+
+			return allColumns;
 		}
 
 		@Override
@@ -490,6 +508,16 @@ class AnalyticStructureBuilder<T, C> {
 		@Override
 		List<ForeignKey> getForeignKey() {
 			return table.getForeignKey();
+		}
+
+		@Override
+		protected void setRowNumber(AnalyticColumn rowNumber) {
+			this.rowNumber = rowNumber;
+		}
+
+		@Override
+		protected AnalyticColumn getRowNumber() {
+			return rowNumber;
 		}
 	}
 
