@@ -15,13 +15,13 @@
  */
 package org.springframework.data.jdbc.core.dialect;
 
-import org.springframework.data.jdbc.core.convert.JdbcArrayColumns;
 import org.springframework.data.relational.core.dialect.Dialect;
 
 /**
  * {@link org.springframework.data.relational.core.dialect.ArrayColumns} that offer JDBC specific functionality.
  *
  * @author Jens Schauder
+ * @author Mikhail Polivakha
  * @since 2.3
  */
 public interface JdbcDialect extends Dialect {
@@ -33,6 +33,8 @@ public interface JdbcDialect extends Dialect {
 	 * @return the JDBC specific array support object that describes how array-typed columns are supported by this
 	 *         dialect.
 	 */
-	@Override
-	JdbcArrayColumns getArraySupport();
+	default JdbcArrayColumns getArraySupport() {
+		return JdbcArrayColumns.Unsupported.INSTANCE;
+	}
+
 }

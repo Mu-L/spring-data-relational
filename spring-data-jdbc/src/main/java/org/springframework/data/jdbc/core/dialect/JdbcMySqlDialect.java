@@ -28,19 +28,21 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.jdbc.core.mapping.JdbcValue;
-import org.springframework.data.relational.core.dialect.Db2Dialect;
 import org.springframework.data.relational.core.dialect.MySqlDialect;
 import org.springframework.data.relational.core.sql.IdentifierProcessing;
 import org.springframework.lang.NonNull;
 
 /**
- * {@link Db2Dialect} that registers JDBC specific converters.
+ * {@link MySqlDialect} that registers JDBC specific converters.
  *
  * @author Jens Schauder
  * @author Christoph Strobl
+ * @author Mikhail Polivakha
  * @since 2.3
  */
-public class JdbcMySqlDialect extends MySqlDialect {
+public class JdbcMySqlDialect extends MySqlDialect implements JdbcDialect {
+
+	public static final JdbcMySqlDialect INSTANCE = new JdbcMySqlDialect();
 
 	public JdbcMySqlDialect(IdentifierProcessing identifierProcessing) {
 		super(identifierProcessing);
