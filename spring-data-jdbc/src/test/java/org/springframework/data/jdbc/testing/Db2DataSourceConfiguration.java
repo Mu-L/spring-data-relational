@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.testcontainers.containers.Db2Container;
+import org.testcontainers.db2.Db2Container;
 
 /**
  * {@link DataSource} setup for DB2.
